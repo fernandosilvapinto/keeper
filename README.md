@@ -64,15 +64,39 @@ docker compose --profile federation up -d
 docker compose --profile authz up -d
 ```
 
-## Realm bootstrap
+## Scripts
 
-`bootstrap-realm.sh` creates the realm from scratch: realm settings, token and
-session lifetimes, SMTP, client scopes with audience mappers, resource servers
-with their permissions, business roles, and the registered applications.
+Four scripts, split by responsibility. The first builds the platform; the other
+three are parameterized operations that any application can call. None of them
+contains application-specific data.
 
 ```
 ./bootstrap-realm.sh
+./register-api.sh   <api-id> <permission,permission,...>
+./register-spa.sh   <client-id> <origin> <api-id,api-id,...>
+./register-role.sh  <role> <api-id>:<permission>,<api-id>:<permission>,...
 ```
+
+`bootstrap-realm.sh` creates the realm once: sign-in policy, token and session
+lifetimes, brute force protection, the mail provider, and event auditing.
+
+`register-api.sh` creates a resource server, declares its permissions as client
+roles, and creates the client scope whose audience mapper puts the API into the
+`aud` claim.
+
+`register-spa.sh` registers a browser application as a public client with PKCE
+enforced, sets its redirect URIs and web origin, and attaches the audiences it
+needs.
+
+`register-role.sh` creates a business role as a composite of permissions drawn
+from one or more resource servers.
+
+All three registration scripts are idempotent. `register-spa.sh` refuses to
+register an application against an API that does not exist, so no client is left
+without an audience.
+
+Applications keep their own registration definition in their own repository and
+call these scripts. This repository never learns their names.
 
 Verify the realm is serving metadata:
 
