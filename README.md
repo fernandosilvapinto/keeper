@@ -5,9 +5,9 @@ role-based authorization across multiple applications.
 
 ## Overview
 
-Keeper is the identity layer of the platform. It authenticates users once and
-issues tokens that every application accepts, so applications no longer store
-credentials, sign their own tokens, or implement login flows.
+Keeper authenticates people once and issues tokens that every application
+accepts, so applications no longer store credentials, sign their own tokens, or
+implement login flows. One sign-in serves them all.
 
 It is deliberately application-agnostic. Applications register as OIDC clients
 and APIs register as resource servers; the identity provider holds no
@@ -66,15 +66,16 @@ docker compose --profile authz up -d
 
 ## Scripts
 
-Four scripts, split by responsibility. The first builds the platform; the other
-three are parameterized operations that any application can call. None of them
+Five scripts, split by responsibility. The first builds the provider; the rest
+are parameterized operations that any application can call. None of them
 contains application-specific data.
 
 ```
 ./bootstrap-realm.sh
-./register-api.sh   <api-id> <permission,permission,...>
-./register-spa.sh   <client-id> <origin> <api-id,api-id,...>
-./register-role.sh  <role> <api-id>:<permission>,<api-id>:<permission>,...
+./register-api.sh             <api-id> <permission,permission,...>
+./register-spa.sh             <client-id> <origin> <api-id,api-id,...>
+./register-role.sh            <role> <api-id>:<permission>,...
+./register-service-client.sh  <client-id> <realm-management-role,...> [secret]
 ```
 
 `bootstrap-realm.sh` creates the realm once: sign-in policy, token and session
@@ -91,9 +92,15 @@ needs.
 `register-role.sh` creates a business role as a composite of permissions drawn
 from one or more resource servers.
 
-All three registration scripts are idempotent. `register-spa.sh` refuses to
-register an application against an API that does not exist, so no client is left
-without an audience.
+`register-service-client.sh` creates a confidential client with a service
+account, for an application that needs to act on the realm without a user —
+creating an account on a visitor's behalf, for instance. Grant it the narrowest
+set of realm management roles the task needs, and keep its secret out of source
+control.
+
+The registration scripts are idempotent. `register-spa.sh` refuses to register an
+application against an API that does not exist, so no client is left without an
+audience.
 
 Applications keep their own registration definition in their own repository and
 call these scripts. This repository never learns their names.
@@ -103,6 +110,15 @@ Verify the realm is serving metadata:
 ```
 curl -s http://keeper.localtest.me:8081/realms/keeper/.well-known/openid-configuration
 ```
+
+## Documentation
+
+[`docs/onboarding.md`](docs/onboarding.md) covers how an application starts using
+this provider and who is responsible for each step — the integration request, who
+owns the permission catalog, who approves access, secret rotation, access
+certification and decommissioning. It also states the service contract in both
+directions: what the provider commits to, and what it requires of every
+integrating application.
 
 ## Configuration as code
 
@@ -133,6 +149,17 @@ subject is and what class of operation they may perform, nothing more.
 | `KC_ADMIN_PASSWORD` | Bootstrap administrator password |
 | `KC_DB_PASSWORD` | Password for the dedicated PostgreSQL instance |
 | `LDAP_ADMIN_PASSWORD` | LDAP administrator password, `federation` profile only |
+
+## Used by
+
+| Application | Registers |
+|---|---|
+| [pistachio-api](https://github.com/fernandosilvapinto/pistachio-api) | A resource server, two browser clients and a service account |
+| [CARGA](https://github.com/fernandosilvapinto/CARGA) | A resource server and one browser client |
+
+Each keeps its own registration definition in its own repository and calls the
+scripts above. The link is documentation: nothing in this repository refers to
+them.
 
 ## Status
 
