@@ -64,22 +64,50 @@ docker compose --profile federation up -d
 docker compose --profile authz up -d
 ```
 
+## Realms
+
+A realm is the security boundary, and it is where single sign-on stops: two
+applications share a session only if they share a realm. The split therefore
+follows the population, not the application.
+
+| Realm | Population | Registration | Sign-in policy |
+|---|---|---|---|
+| `workforce` | The operator's own people | Closed — accounts are provisioned | Short sessions, no "remember me" |
+| `customers` | People who buy from the operator | Open, with email verification | Long sessions, "remember me" |
+
+Internal applications register in `workforce` and single sign-on between
+themselves. A customer-facing application registers in `customers` and can never
+receive a workforce session, whatever it asks for. An API that serves both
+validates two issuers and accepts a token from either.
+
+```
+./bootstrap-realm.sh workforce workforce
+./bootstrap-realm.sh customers customers
+```
+
 ## Scripts
 
-Five scripts, split by responsibility. The first builds the provider; the rest
-are parameterized operations that any application can call. None of them
-contains application-specific data.
+Seven scripts, split by responsibility. The first builds a realm; the rest are
+parameterized operations that any application can call. None of them contains
+application-specific data.
 
 ```
-./bootstrap-realm.sh
+./bootstrap-realm.sh          <realm> [workforce|customers]
 ./register-api.sh             <api-id> <permission,permission,...>
 ./register-spa.sh             <client-id> <origin> <api-id,api-id,...>
-./register-role.sh            <role> <api-id>:<permission>,...
+./register-role.sh            <role> <api-id>:<permission>,... [default]
 ./register-service-client.sh  <client-id> <realm-management-role,...> [secret]
+./set-realm-theme.sh          <realm> <login-theme> [account] [email]
+./export-realm.sh             <realm> [output-dir]
 ```
 
-`bootstrap-realm.sh` creates the realm once: sign-in policy, token and session
-lifetimes, brute force protection, the mail provider, and event auditing.
+Every script but the first acts on the realm named in `KEEPER_REALM`, so an
+application registers itself in one realm or the other by exporting it.
+
+`bootstrap-realm.sh` creates or updates a realm and applies a profile: sign-in
+policy, token and session lifetimes, brute force protection, the mail provider,
+and event auditing. It is safe to run again — it is how a policy change is
+applied.
 
 `register-api.sh` creates a resource server, declares its permissions as client
 roles, and creates the client scope whose audience mapper puts the API into the
@@ -98,6 +126,12 @@ creating an account on a visitor's behalf, for instance. Grant it the narrowest
 set of realm management roles the task needs, and keep its secret out of source
 control.
 
+`set-realm-theme.sh` points a realm at a login, account or email theme, so a
+customer-facing realm can carry the application's branding while the provider
+remains the only thing that ever sees a password.
+
+`export-realm.sh` writes the realm's configuration to `realms/<realm>.json`.
+
 The registration scripts are idempotent. `register-spa.sh` refuses to register an
 application against an API that does not exist, so no client is left without an
 audience.
@@ -105,10 +139,10 @@ audience.
 Applications keep their own registration definition in their own repository and
 call these scripts. This repository never learns their names.
 
-Verify the realm is serving metadata:
+Verify a realm is serving metadata:
 
 ```
-curl -s http://keeper.localtest.me:8081/realms/keeper/.well-known/openid-configuration
+curl -s http://keeper.localtest.me:8081/realms/workforce/.well-known/openid-configuration
 ```
 
 ## Documentation
@@ -123,12 +157,18 @@ integrating application.
 ## Configuration as code
 
 Realm configuration lives in the database, not in this repository. Export it
-after any change so that the identity configuration is versioned and reviewable:
+after any change, so that a change to who can do what arrives as a reviewable
+diff rather than as an undocumented click in a console:
 
 ```
-docker exec keeper /opt/keycloak/bin/kc.sh export --dir /tmp/export --realm keeper
-docker cp keeper:/tmp/export/keeper-realm.json ./realms/
+./export-realm.sh workforce
+./export-realm.sh customers
 ```
+
+The export runs against the live provider and covers clients, roles, groups,
+scopes, mappers and realm policy. It deliberately omits users and masks client
+secrets: what belongs in version control is the configuration, not the
+population and not the credentials.
 
 ## Authorization model
 
@@ -154,8 +194,8 @@ subject is and what class of operation they may perform, nothing more.
 
 | Application | Registers |
 |---|---|
-| [pistachio-api](https://github.com/fernandosilvapinto/pistachio-api) | A resource server, two browser clients and a service account |
-| [CARGA](https://github.com/fernandosilvapinto/CARGA) | A resource server and one browser client |
+| [pistachio-api](https://github.com/fernandosilvapinto/pistachio-api) | A resource server in both realms, two browser clients and a service account |
+| CARGA | A resource server and one browser client in `workforce` |
 
 Each keeps its own registration definition in its own repository and calls the
 scripts above. The link is documentation: nothing in this repository refers to

@@ -11,6 +11,11 @@ SMTP_HOST=${KEEPER_SMTP_HOST:-host.docker.internal}
 SMTP_PORT=${KEEPER_SMTP_PORT:-1025}
 SMTP_FROM=${KEEPER_SMTP_FROM:-keeper@keeper.local}
 
+# The authorization code is single-use and is redeemed by the application within
+# a second or two. Sixty seconds is the value OAuth 2.1 recommends; raise it
+# through the environment only while exchanging codes by hand.
+ACCESS_CODE_LIFESPAN=${KEEPER_ACCESS_CODE_LIFESPAN:-60}
+
 case "$PROFILE" in
   workforce)
     DISPLAY_NAME="Keeper Workforce"
@@ -48,7 +53,7 @@ SETTINGS=(
   -s "rememberMe=$REMEMBER_ME"
   -s bruteForceProtected=true
   -s accessTokenLifespan=300
-  -s accessCodeLifespan=300
+  -s "accessCodeLifespan=$ACCESS_CODE_LIFESPAN"
   -s "ssoSessionIdleTimeout=$SSO_IDLE"
   -s "ssoSessionMaxLifespan=$SSO_MAX"
 )
