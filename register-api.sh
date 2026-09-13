@@ -53,4 +53,29 @@ else
   echo "    already exists, kept"
 fi
 
+SCOPE_UUID=$(scope_uuid "$API_ID")
+
+# The client scope also carries this API's permissions in its own scope.
+#
+# This is what makes the audience mean anything. Keycloak has a built-in
+# "audience resolve" mapper that puts into `aud` every client the user holds
+# roles for, and a client with full scope allowed receives every role the user
+# has — so a token issued to one application arrives at another application's
+# API already carrying that API's permissions and its name in `aud`.
+#
+# Closing each client's scope (see register-spa.sh) stops that, and then a
+# client only sees the permissions of the APIs whose scope it was given. Those
+# permissions are attached here, next to the audience mapper, so that one
+# object grants both and the two can never drift apart.
+echo "==> Permissions carried by the client scope"
+if kc get "clients/$API_UUID/roles" -r "$REALM" --fields id,name --format json \
+     | kc_in create "client-scopes/$SCOPE_UUID/scope-mappings/clients/$API_UUID" \
+         -r "$REALM" -f - >/dev/null 2>&1
+then
+  echo "    attached"
+else
+  echo "    WARNING: could not attach the permissions to the client scope." >&2
+  echo "    Applications using $API_ID will authorize as if they had none." >&2
+fi
+
 echo "Resource server $API_ID ready."

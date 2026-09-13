@@ -18,6 +18,14 @@ kc() {
     docker exec "$CONTAINER" /opt/keycloak/bin/kcadm.sh "$@"
 }
 
+# Same, but with stdin attached, for the calls that pass a JSON body with
+# `-f -`. Kept separate so the ordinary calls are not left waiting on a
+# terminal that never sends anything.
+kc_in() {
+  MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' \
+    docker exec -i "$CONTAINER" /opt/keycloak/bin/kcadm.sh "$@"
+}
+
 kc_login() {
   require_container
 

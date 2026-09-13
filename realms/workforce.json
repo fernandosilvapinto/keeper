@@ -455,6 +455,7 @@
       } ],
       "security-admin-console" : [ ],
       "admin-cli" : [ ],
+      "pistachio-cli" : [ ],
       "carga-web" : [ ],
       "account-console" : [ ],
       "broker" : [ {
@@ -541,6 +542,7 @@
         "containerId" : "ad08a6e8-fc78-4235-95f6-55ab8920ed43",
         "attributes" : { }
       } ],
+      "carga-cli" : [ ],
       "pistachio-admin" : [ ]
     }
   },
@@ -592,6 +594,14 @@
     "roles" : [ "offline_access" ]
   } ],
   "clientScopeMappings" : {
+    "pistachio-api" : [ {
+      "clientScope" : "pistachio-api",
+      "roles" : [ "services:read", "scheduling:read", "payments:write", "scheduling:delete", "scheduling:status", "users:read", "scheduling:assign", "payments:read", "scheduling:write", "services:write" ]
+    } ],
+    "carga-api" : [ {
+      "clientScope" : "carga-api",
+      "roles" : [ "reference:read", "surveys:read", "operations:read", "surveys:write", "operations:delete", "operations:write", "reference:delete", "reference:write" ]
+    } ],
     "account" : [ {
       "client" : "account-console",
       "roles" : [ "manage-account", "view-groups" ]
@@ -756,6 +766,36 @@
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
   }, {
+    "id" : "ffbf6ced-edef-4547-8bce-8656c0a5d2bd",
+    "clientId" : "carga-cli",
+    "name" : "keeper-cli",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "redirectUris" : [ "http://localhost:8765/*" ],
+    "webOrigins" : [ "http://localhost:8765" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : true,
+    "frontchannelLogout" : true,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "realm_client" : "false",
+      "post.logout.redirect.uris" : "http://localhost:8765/*",
+      "pkce.code.challenge.method" : "S256"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : false,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "acr", "carga-api", "roles", "profile", "basic", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
+  }, {
     "id" : "1f434c35-e334-4d6d-90b1-a8fd9d3d9eb4",
     "clientId" : "carga-web",
     "name" : "carga-web",
@@ -781,7 +821,7 @@
       "pkce.code.challenge.method" : "S256"
     },
     "authenticationFlowBindingOverrides" : { },
-    "fullScopeAllowed" : true,
+    "fullScopeAllowed" : false,
     "nodeReRegistrationTimeout" : -1,
     "defaultClientScopes" : [ "web-origins", "acr", "carga-api", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
@@ -811,7 +851,7 @@
       "pkce.code.challenge.method" : "S256"
     },
     "authenticationFlowBindingOverrides" : { },
-    "fullScopeAllowed" : true,
+    "fullScopeAllowed" : false,
     "nodeReRegistrationTimeout" : -1,
     "defaultClientScopes" : [ "web-origins", "acr", "pistachio-api", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
@@ -844,6 +884,36 @@
     "fullScopeAllowed" : true,
     "nodeReRegistrationTimeout" : -1,
     "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
+  }, {
+    "id" : "80b72c3a-679c-4ab3-9819-6e40d6b05b0c",
+    "clientId" : "pistachio-cli",
+    "name" : "pistachio-cli",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "alwaysDisplayInConsole" : false,
+    "clientAuthenticatorType" : "client-secret",
+    "redirectUris" : [ "http://localhost:8766/*" ],
+    "webOrigins" : [ "http://localhost:8766" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : true,
+    "frontchannelLogout" : true,
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "realm_client" : "false",
+      "post.logout.redirect.uris" : "http://localhost:8766/*",
+      "pkce.code.challenge.method" : "S256"
+    },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : false,
+    "nodeReRegistrationTimeout" : -1,
+    "defaultClientScopes" : [ "web-origins", "acr", "pistachio-api", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
   }, {
     "id" : "33464a4d-d31a-4061-9442-ff5e31c3d55a",

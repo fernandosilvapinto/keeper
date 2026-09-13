@@ -460,6 +460,10 @@
     "roles" : [ "offline_access" ]
   } ],
   "clientScopeMappings" : {
+    "pistachio-api" : [ {
+      "clientScope" : "pistachio-api",
+      "roles" : [ "scheduling:read", "scheduling:write" ]
+    } ],
     "account" : [ {
       "client" : "account-console",
       "roles" : [ "manage-account", "view-groups" ]
@@ -641,7 +645,7 @@
     "directAccessGrantsEnabled" : false,
     "serviceAccountsEnabled" : false,
     "publicClient" : true,
-    "frontchannelLogout" : true,
+    "frontchannelLogout" : false,
     "protocol" : "openid-connect",
     "attributes" : {
       "realm_client" : "false",
@@ -649,7 +653,7 @@
       "pkce.code.challenge.method" : "S256"
     },
     "authenticationFlowBindingOverrides" : { },
-    "fullScopeAllowed" : true,
+    "fullScopeAllowed" : false,
     "nodeReRegistrationTimeout" : -1,
     "defaultClientScopes" : [ "web-origins", "acr", "pistachio-api", "roles", "profile", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access", "organization", "microprofile-jwt" ]
